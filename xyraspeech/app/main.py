@@ -13,6 +13,7 @@ from xyrabrain.app.api.brain import router as brain_router
 from xyrabrain.app.schemas.errors import ErrorDetail, ErrorResponse
 from xyrabrain.app.services.ollama_client import ollama_client
 from xyraspeech.app.api.conversation import router as conversation_router
+from xyraspeech.app.api.elevenlabs_compat import router as elevenlabs_router
 from xyraspeech.app.api.health import router as health_router
 from xyraspeech.app.api.realtime import router as realtime_router
 from xyraspeech.app.api.stt import router as stt_router
@@ -118,6 +119,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(stt_router)
     app.include_router(tts_router)
+    app.include_router(elevenlabs_router)
     app.include_router(translate_router)
     app.include_router(brain_router)
     app.include_router(conversation_router)
