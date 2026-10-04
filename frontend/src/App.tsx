@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Mic2, MessageSquare, Volume2, Globe2, Layers, Cpu, Copy } from "lucide-react";
+import { Mic2, MessageSquare, Volume2, Globe2, Layers, Cpu } from "lucide-react";
 import { VoiceStudio } from "./components/VoiceStudio";
 import { TextToSpeechStudio } from "./components/TextToSpeechStudio";
 import { SpeechToTextStudio } from "./components/SpeechToTextStudio";
-import { VoiceCloningStudio } from "./components/VoiceCloningStudio";
 import { Translator } from "./components/Translator";
 import { VoiceLibrary } from "./components/VoiceLibrary";
 import { SystemStatus } from "./components/SystemStatus";
@@ -11,7 +10,7 @@ import { api } from "./services/api";
 import { VoiceItem } from "./types";
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"assistant" | "tts" | "cloning" | "stt" | "translator" | "voices" | "status">("assistant");
+  const [activeTab, setActiveTab] = useState<"assistant" | "tts" | "stt" | "translator" | "voices" | "status">("assistant");
   const [voices, setVoices] = useState<VoiceItem[]>([]);
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export const App: React.FC = () => {
         <nav style={{ display: "flex", gap: "8px", background: "rgba(255,255,255,0.04)", padding: "6px", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
           <TabButton active={activeTab === "assistant"} onClick={() => setActiveTab("assistant")} icon={<MessageSquare size={16} />} label="Voice Assistant" />
           <TabButton active={activeTab === "tts"} onClick={() => setActiveTab("tts")} icon={<Volume2 size={16} />} label="Text-to-Speech" />
-          <TabButton active={activeTab === "cloning"} onClick={() => setActiveTab("cloning")} icon={<Copy size={16} />} label="Voice Cloning" />
           <TabButton active={activeTab === "stt"} onClick={() => setActiveTab("stt")} icon={<Mic2 size={16} />} label="Speech-to-Text" />
           <TabButton active={activeTab === "translator"} onClick={() => setActiveTab("translator")} icon={<Globe2 size={16} />} label="Translator" />
           <TabButton active={activeTab === "voices"} onClick={() => setActiveTab("voices")} icon={<Layers size={16} />} label="Voices" />
@@ -63,7 +61,6 @@ export const App: React.FC = () => {
       <main>
         {activeTab === "assistant" && <VoiceStudio voices={voices} />}
         {activeTab === "tts" && <TextToSpeechStudio voices={voices} />}
-        {activeTab === "cloning" && <VoiceCloningStudio />}
         {activeTab === "stt" && <SpeechToTextStudio />}
         {activeTab === "translator" && <Translator />}
         {activeTab === "voices" && <VoiceLibrary voices={voices} />}

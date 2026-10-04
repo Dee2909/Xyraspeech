@@ -16,16 +16,16 @@ def test_get_voices(test_client):
     assert response.status_code == 200
     data = response.json()
     assert "voices" in data
-    assert len(data["voices"]) >= 2
-    assert any(v["id"] == "ta_vani" for v in data["voices"])
-    assert any(v["id"] == "en_rishi" for v in data["voices"])
+    assert len(data["voices"]) == 2
+    assert any(v["id"] == "ta_pallavi" for v in data["voices"])
+    assert any(v["id"] == "en_neerja" for v in data["voices"])
 
 
 def test_post_tts_english(test_client):
     payload = {
         "text": "Hello, welcome to XyraSpeech voice studio!",
         "language": "en",
-        "voice_id": "en_rishi",
+        "voice_id": "en_neerja",
     }
     response = test_client.post("/api/v1/tts", json=payload)
     assert response.status_code == 200
@@ -37,7 +37,7 @@ def test_post_tts_tamil(test_client):
     payload = {
         "text": "வணக்கம்! XyraSpeech தளத்திற்கு தங்களை வரவேற்கிறோம்!",
         "language": "ta",
-        "voice_id": "ta_vani",
+        "voice_id": "ta_pallavi",
     }
     response = test_client.post("/api/v1/tts", json=payload)
     assert response.status_code == 200
