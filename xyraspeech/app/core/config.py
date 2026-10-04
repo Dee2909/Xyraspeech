@@ -24,9 +24,14 @@ class Settings(BaseSettings):
     WHISPER_DEVICE: str = "cpu"
     WHISPER_COMPUTE_TYPE: str = "int8"
 
+    # API Security & Authentication
+    API_KEY_ENABLED: bool = True
+    API_KEYS: list[str] = ["xyra_live_8f3a9b2c1d4e7f6a5b0c9d8e7f6a5b4c"]
+    DEFAULT_API_KEY: str = "xyra_live_8f3a9b2c1d4e7f6a5b0c9d8e7f6a5b4c"
+
     # Default Voices
-    DEFAULT_VOICE_TA: str = "ta_vani"
-    DEFAULT_VOICE_EN: str = "en_rishi"
+    DEFAULT_VOICE_TA: str = "ta_pallavi"
+    DEFAULT_VOICE_EN: str = "en_neerja"
 
     # Audio Engine & VAD
     AUDIO_SAMPLE_RATE: int = 24000
@@ -60,3 +65,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
