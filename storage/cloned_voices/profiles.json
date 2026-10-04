@@ -1,0 +1,28 @@
+{
+  "cloned_529875df": {
+    "voice_id": "cloned_529875df",
+    "name": "Karthik Custom",
+    "gender": "Female",
+    "f0_mean": 160.0,
+    "pitch_factor": 0.85,
+    "warmth_gain": 3.0,
+    "brightness_gain": 2.5,
+    "clarity_freq": 3400,
+    "tempo_factor": 1.0,
+    "sample_path": "storage/cloned_voices/cloned_529875df.wav",
+    "language": "multilingual"
+  },
+  "cloned_67a5313b": {
+    "voice_id": "cloned_67a5313b",
+    "name": "Temporary Clone",
+    "gender": "Female",
+    "f0_mean": 160.0,
+    "pitch_factor": 0.85,
+    "warmth_gain": 3.0,
+    "brightness_gain": 2.5,
+    "clarity_freq": 3400,
+    "tempo_factor": 1.0,
+    "sample_path": "storage/cloned_voices/cloned_67a5313b.wav",
+    "language": "multilingual"
+  }
+}
