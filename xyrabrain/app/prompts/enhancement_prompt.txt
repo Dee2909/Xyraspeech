@@ -1,0 +1,34 @@
+Enhance the following text for spoken clarity, natural punctuation, capitalization, and phrasing in language '{language}'.
+
+Input Text:
+"""
+{text}
+"""
+
+Rules:
+1. Improve punctuation, capitalization, sentence boundaries, and readability for spoken delivery.
+2. DO NOT change the core meaning, invent facts, add dialogue, or remove key words.
+3. DO NOT translate. If input is Tamil, the enhanced text MUST be Tamil. If input is English, enhanced text MUST be English.
+4. Keep all numbers, proper nouns, and technical terms accurate.
+
+Return ONLY a valid JSON object matching this schema:
+{{
+  "language": "{language}",
+  "speech_text": "Enhanced text here",
+  "overall_style": "conversational",
+  "overall_emotion": "neutral",
+  "segments": [
+    {{
+      "text": "Segment 1 text",
+      "emotion": "neutral",
+      "style": "conversational",
+      "energy": 0.5,
+      "speed": 1.0,
+      "pitch": 1.0,
+      "emphasis": [],
+      "pause_before_ms": 0,
+      "pause_after_ms": 250,
+      "pronunciation_hint": null
+    }}
+  ]
+}}

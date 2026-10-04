@@ -1,0 +1,3 @@
+# Pyrefly Configuration for XyraBrain
+search-path = [".."]
+python-interpreter-path = "../.venv/bin/python"

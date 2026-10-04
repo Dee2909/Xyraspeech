@@ -1,0 +1,45 @@
+Analyze the following text in language '{language}' for expressive speech performance.
+
+Input Text:
+"""
+{text}
+"""
+
+Instructions:
+1. Preserve the exact meaning and words of the input text in 'speech_text'.
+2. Identify the language accurately ('ta' for Tamil, 'en' for English, or 'ta-en' for mixed).
+3. Determine the overall speaking style and overall emotional tone from the controlled list.
+4. Break down the speech into natural speech segments.
+5. For each segment, provide:
+   - "text": The segment's text (preserving original language)
+   - "emotion": One of [neutral, happy, excited, sad, angry, surprised, curious, concerned, empathetic, calm, warm, serious, confident, playful, apologetic, encouraging, disappointed, fearful]
+   - "style": One of [neutral, conversational, professional, friendly, warm, enthusiastic, calm, serious, storytelling, instructional, empathetic, energetic]
+   - "energy": Float between 0.0 and 1.0 (default 0.5)
+   - "speed": Float between 0.5 and 1.5 (default 1.0)
+   - "pitch": Float between 0.8 and 1.2 (default 1.0)
+   - "emphasis": List of up to 3 key words/phrases in this segment
+   - "pause_before_ms": Integer between 0 and 3000
+   - "pause_after_ms": Integer between 0 and 3000
+   - "pronunciation_hint": Optional null or phonetic hint
+
+Return ONLY a valid JSON object matching this schema:
+{{
+  "language": "{language}",
+  "speech_text": "...",
+  "overall_style": "...",
+  "overall_emotion": "...",
+  "segments": [
+    {{
+      "text": "...",
+      "emotion": "...",
+      "style": "...",
+      "energy": 0.5,
+      "speed": 1.0,
+      "pitch": 1.0,
+      "emphasis": [],
+      "pause_before_ms": 0,
+      "pause_after_ms": 250,
+      "pronunciation_hint": null
+    }}
+  ]
+}}
