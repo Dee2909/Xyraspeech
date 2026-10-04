@@ -139,7 +139,12 @@ class VoiceCloningEngine:
         )
         voice_registry._voices[profile.voice_id] = voice_item
 
-    def analyze_reference_audio(self, audio_bytes: bytes, voice_name: str) -> SpeakerProfile:
+    def analyze_reference_audio(
+        self,
+        audio_bytes: bytes,
+        voice_name: str,
+        gender_override: Optional[str] = None,
+    ) -> SpeakerProfile:
         """Extracts acoustic features ($F_0$, Formants, Spectral Tilt, Cadence) from reference audio."""
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_in:
             tmp_in.write(audio_bytes)
@@ -167,41 +172,48 @@ class VoiceCloningEngine:
             if len(data) < sr * 0.5:
                 raise ValueError("Reference audio sample is too short. Please provide at least 1-3 seconds of speech.")
 
-            # 1. Fundamental Frequency ($F_0$) estimation via Autocorrelation
+            # 1. Fundamental Frequency ($F_0$) estimation on voiced frames
             frame_len = int(sr * 0.04)  # 40ms frame
             hop_len = int(sr * 0.01)    # 10ms hop
             f0_estimates = []
+            energy_threshold = 0.01
 
-            for i in range(0, len(data) - frame_len, hop_len * 4):
+            for i in range(0, len(data) - frame_len, hop_len * 2):
                 frame = data[i : i + frame_len]
-                # Apply Hanning window
+                rms = np.sqrt(np.mean(frame**2))
+                if rms < energy_threshold:
+                    continue
+
                 frame = frame * np.hanning(len(frame))
                 autocorr = np.correlate(frame, frame, mode="full")
                 autocorr = autocorr[len(autocorr) // 2 :]
 
-                # Find peak in human pitch range (60Hz - 400Hz)
-                min_lag = int(sr / 400)
-                max_lag = int(sr / 60)
+                # Find peak in human pitch range (65Hz - 380Hz)
+                min_lag = int(sr / 380)
+                max_lag = int(sr / 65)
                 if len(autocorr) > max_lag:
                     peak_idx = min_lag + np.argmax(autocorr[min_lag:max_lag])
-                    if autocorr[peak_idx] > 0.3 * autocorr[0]:
+                    if autocorr[peak_idx] > 0.35 * autocorr[0]:
                         freq = sr / peak_idx
-                        f0_estimates.append(freq)
+                        if 65 <= freq <= 380:
+                            f0_estimates.append(freq)
 
-            f0_mean = float(np.median(f0_estimates)) if f0_estimates else 165.0
+            f0_mean = float(np.median(f0_estimates)) if f0_estimates else 145.0
 
             # 2. Gender & Pitch Factor estimation
-            # Baseline reference is ~180Hz (Female) or ~120Hz (Male)
-            if f0_mean < 145.0:
-                gender = "Male"
-                base_f0 = 120.0
+            if gender_override:
+                gender = "Female" if gender_override.lower().startswith("f") else "Male"
+            else:
+                gender = "Male" if f0_mean < 165.0 else "Female"
+
+            if gender == "Male":
+                base_f0 = 125.0
                 pitch_factor = max(0.85, min(1.15, f0_mean / base_f0))
                 warmth_gain = 3.2
                 brightness_gain = 1.0
                 clarity_freq = 2800
             else:
-                gender = "Female"
-                base_f0 = 195.0
+                base_f0 = 200.0
                 pitch_factor = max(0.85, min(1.15, f0_mean / base_f0))
                 warmth_gain = 1.8
                 brightness_gain = 2.5
