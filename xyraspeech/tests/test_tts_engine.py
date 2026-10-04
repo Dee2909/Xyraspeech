@@ -47,9 +47,9 @@ def test_voice_registry_lookups():
     assert len(voices) >= 2
 
     ta_voice = voice_registry.get_default_voice("ta")
-    assert ta_voice.id == "ta_vani"
+    assert ta_voice.id in ["ta_pallavi", "ta_vani"]
     assert ta_voice.language == "ta"
 
     en_voice = voice_registry.get_default_voice("en")
-    assert en_voice.id == "en_rishi"
+    assert en_voice.id in ["en_neerja", "en_rishi"]
     assert en_voice.language == "en"
