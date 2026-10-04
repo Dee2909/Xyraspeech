@@ -19,6 +19,7 @@ async def health():
         "status": "healthy",
         "app_name": settings.APP_NAME,
         "version": settings.APP_VERSION,
+        "configured_model": settings.OLLAMA_MODEL,
     }
 
 

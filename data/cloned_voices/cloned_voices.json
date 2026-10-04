@@ -1,0 +1,83 @@
+{
+  "clone_karthik_voice_2f7a04": {
+    "id": "clone_karthik_voice_2f7a04",
+    "name": "Karthik Voice",
+    "language": "ta",
+    "gender": "Cloned",
+    "engine": "voice_cloner",
+    "sample_rate": 24000,
+    "ref_audio_path": "/Users/chandru/Desktop/Xyraspeech/data/cloned_voices/clone_karthik_voice_2f7a04.wav",
+    "features": {
+      "duration": 2.0,
+      "sample_rate": 16000,
+      "rms_energy": 0.2158,
+      "estimated_pitch_hz": 400.0,
+      "pitch_factor": 1.35,
+      "bass_gain_db": 4.0,
+      "treble_gain_db": -2.0
+    },
+    "description": "Test clone",
+    "created_at": 1791106632.4932501
+  },
+  "clone_joy_9b72b2": {
+    "id": "clone_joy_9b72b2",
+    "name": "joy",
+    "language": "ta",
+    "gender": "Cloned",
+    "engine": "voice_cloner",
+    "sample_rate": 24000,
+    "ref_audio_path": "/Users/chandru/Desktop/Xyraspeech/data/cloned_voices/clone_joy_9b72b2.wav",
+    "features": {
+      "duration": 8.41,
+      "sample_rate": 44100,
+      "rms_energy": 0.1441,
+      "estimated_pitch_hz": 400.0,
+      "pitch_factor": 1.35,
+      "bass_gain_db": 1.17,
+      "treble_gain_db": -1.32
+    },
+    "description": "Cloned voice from user audio sample (8.41s)",
+    "created_at": 1791121865.965868
+  },
+  "clone_9_04ebdb": {
+    "id": "clone_9_04ebdb",
+    "name": "9",
+    "language": "ta",
+    "gender": "Cloned",
+    "engine": "voice_cloner",
+    "sample_rate": 24000,
+    "ref_audio_path": "/Users/chandru/Desktop/Xyraspeech/data/cloned_voices/clone_9_04ebdb.wav",
+    "features": {
+      "duration": 8.41,
+      "sample_rate": 44100,
+      "rms_energy": 0.1441,
+      "estimated_pitch_hz": 400.0,
+      "pitch_factor": 1.35,
+      "bass_gain_db": 1.17,
+      "treble_gain_db": -1.32
+    },
+    "description": "Cloned voice from user audio sample (8.41s)",
+    "created_at": 1791122558.321704
+  },
+  "clone_jo_41b8ab": {
+    "id": "clone_jo_41b8ab",
+    "name": "jo",
+    "language": "ta",
+    "gender": "Male",
+    "engine": "voice_cloner",
+    "sample_rate": 24000,
+    "ref_audio_path": "/Users/chandru/Desktop/Xyraspeech/data/cloned_voices/clone_jo_41b8ab.wav",
+    "features": {
+      "duration": 8.41,
+      "sample_rate": 44100,
+      "rms_energy": 0.1441,
+      "estimated_pitch_hz": 137.0,
+      "inferred_gender": "Male",
+      "bass_gain_db": 1.22,
+      "mid_gain_db": -0.17,
+      "treble_gain_db": -1.66
+    },
+    "description": "Cloned voice (Male, 137.0Hz, 8.41s sample)",
+    "created_at": 1791124660.5399308
+  }
+}

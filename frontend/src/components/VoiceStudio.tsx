@@ -191,12 +191,40 @@ export const VoiceStudio: React.FC<Props> = ({ voices }) => {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px" }}>
-      {/* Left Chat & Live Assistant */}
-      <div style={{ display: "flex", flexDirection: "column", height: "680px" }}>
-        {/* Controls Bar */}
-        <div className="glass-card" style={{ padding: "16px 20px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* Hero Visual Banner */}
+      <div
+        style={{
+          position: "relative",
+          borderRadius: "20px",
+          overflow: "hidden",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          display: "flex",
+          alignItems: "center",
+          minHeight: "140px",
+          background: "linear-gradient(90deg, rgba(7, 9, 19, 0.95) 45%, rgba(7, 9, 19, 0.3) 100%), url('/hero_banner.png') right center / cover no-repeat",
+          padding: "24px 32px",
+        }}
+      >
+        <div style={{ maxWidth: "680px", zIndex: 2 }}>
+          <span style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--accent-cyan)", fontWeight: 800 }}>
+            ✨ Real-Time Voice Intelligence & Barge-In
+          </span>
+          <h2 style={{ fontSize: "24px", fontWeight: 900, marginTop: "4px", fontFamily: "var(--font-heading)" }}>
+            Multilingual Conversational <span className="gradient-text">Speech Studio</span>
+          </h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginTop: "4px", lineHeight: "1.5" }}>
+            Speak in Tamil, English, or mixed Tamil-English. Features barge-in interruption, sentiment prosody planning, and high-fidelity local voice synthesis.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px" }}>
+        {/* Left Chat & Live Assistant */}
+        <div style={{ display: "flex", flexDirection: "column", height: "660px" }}>
+          {/* Controls Bar */}
+          <div className="glass-card" style={{ padding: "16px 20px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <Globe size={18} color="var(--accent-cyan)" />
             <select
               value={language}
@@ -478,5 +506,6 @@ export const VoiceStudio: React.FC<Props> = ({ voices }) => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };

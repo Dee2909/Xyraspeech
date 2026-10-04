@@ -139,6 +139,13 @@ def create_app() -> FastAPI:
         async def serve_frontend_root():
             return FileResponse(dist_dir / "index.html")
 
+        @app.get("/{file_name:path}")
+        async def serve_dist_files(file_name: str):
+            target_file = dist_dir / file_name
+            if target_file.exists() and target_file.is_file():
+                return FileResponse(target_file)
+            return FileResponse(dist_dir / "index.html")
+
     return app
 
 

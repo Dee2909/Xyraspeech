@@ -97,4 +97,39 @@ export const api = {
     }
     return res.json();
   },
+
+  async cloneVoice(params: {
+    file: Blob;
+    name: string;
+    language?: string;
+    gender?: string;
+    description?: string;
+  }): Promise<VoiceItem> {
+    const formData = new FormData();
+    formData.append("file", params.file, "voice_sample.wav");
+    formData.append("name", params.name);
+    if (params.language) formData.append("language", params.language);
+    if (params.gender) formData.append("gender", params.gender);
+    if (params.description) formData.append("description", params.description);
+
+    const res = await fetch(`${BASE_URL}/api/v1/voices/clone`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || "Voice cloning failed");
+    }
+    return res.json();
+  },
+
+  async deleteVoice(voiceId: string): Promise<void> {
+    const res = await fetch(`${BASE_URL}/api/v1/voices/${voiceId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || "Deleting voice failed");
+    }
+  },
 };

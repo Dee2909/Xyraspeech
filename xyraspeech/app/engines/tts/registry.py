@@ -50,14 +50,22 @@ class VoiceRegistry:
         }
 
     def list_voices(self, language: Optional[str] = None) -> List[VoiceItem]:
-        """Lists all registered voices or filters by language."""
+        """Lists all registered static and cloned voices."""
+        from xyraspeech.app.engines.tts.voice_cloner import voice_cloner_engine
+        all_voices = list(self._voices.values()) + voice_cloner_engine.list_cloned_voices()
         if language:
-            return [v for v in self._voices.values() if v.language == language or (language == "ta-en")]
-        return list(self._voices.values())
+            return [v for v in all_voices if v.language == language or (language == "ta-en")]
+        return all_voices
 
     def get_voice(self, voice_id: str) -> Optional[VoiceItem]:
         """Fetches voice item by ID."""
-        return self._voices.get(voice_id)
+        if voice_id in self._voices:
+            return self._voices[voice_id]
+        from xyraspeech.app.engines.tts.voice_cloner import voice_cloner_engine
+        for v in voice_cloner_engine.list_cloned_voices():
+            if v.id == voice_id:
+                return v
+        return None
 
     def get_default_voice(self, language: str) -> VoiceItem:
         """Returns the default voice for a given language."""

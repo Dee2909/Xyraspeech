@@ -16,7 +16,7 @@ def test_get_voices(test_client):
     assert response.status_code == 200
     data = response.json()
     assert "voices" in data
-    assert len(data["voices"]) == 2
+    assert len(data["voices"]) >= 2
     assert any(v["id"] == "ta_pallavi" for v in data["voices"])
     assert any(v["id"] == "en_neerja" for v in data["voices"])
 

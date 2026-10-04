@@ -9,6 +9,7 @@ from xyraspeech.app.core.config import settings
 from xyraspeech.app.core.security import verify_api_key
 from xyraspeech.app.engines.tts.mac_tts import mac_tts_engine
 from xyraspeech.app.engines.tts.registry import voice_registry
+from xyraspeech.app.engines.tts.voice_cloner import voice_cloner_engine
 from xyraspeech.app.schemas.tts import TTSRequest
 
 router = APIRouter(prefix="/api/v1", tags=["Text-to-Speech"])
@@ -47,16 +48,28 @@ async def get_synthesize_speech(
         voice = voice_registry.get_default_voice(lang_code)
 
     try:
-        wav_bytes = await mac_tts_engine.synthesize(
-            text=text,
-            language=lang_code,
-            voice_id=voice.id,
-            speed=speed,
-            pitch=pitch,
-            energy=energy,
-            emotion=emotion,
-            style=style,
-        )
+        if voice.id.startswith("clone_") or voice.engine == "voice_cloner":
+            wav_bytes = await voice_cloner_engine.synthesize(
+                text=text,
+                language=lang_code,
+                voice_id=voice.id,
+                speed=speed,
+                pitch=pitch,
+                energy=energy,
+                emotion=emotion,
+                style=style,
+            )
+        else:
+            wav_bytes = await mac_tts_engine.synthesize(
+                text=text,
+                language=lang_code,
+                voice_id=voice.id,
+                speed=speed,
+                pitch=pitch,
+                energy=energy,
+                emotion=emotion,
+                style=style,
+            )
 
         return Response(
             content=wav_bytes,
@@ -103,16 +116,28 @@ async def synthesize_speech(
         voice = voice_registry.get_default_voice(lang_code)
 
     try:
-        wav_bytes = await mac_tts_engine.synthesize(
-            text=request.text,
-            language=lang_code,
-            voice_id=voice.id,
-            speed=request.speed or 1.0,
-            pitch=request.pitch or 1.0,
-            energy=request.energy or 0.5,
-            emotion=request.emotion,
-            style=request.style,
-        )
+        if voice.id.startswith("clone_") or voice.engine == "voice_cloner":
+            wav_bytes = await voice_cloner_engine.synthesize(
+                text=request.text,
+                language=lang_code,
+                voice_id=voice.id,
+                speed=request.speed or 1.0,
+                pitch=request.pitch or 1.0,
+                energy=request.energy or 0.5,
+                emotion=request.emotion,
+                style=request.style,
+            )
+        else:
+            wav_bytes = await mac_tts_engine.synthesize(
+                text=request.text,
+                language=lang_code,
+                voice_id=voice.id,
+                speed=request.speed or 1.0,
+                pitch=request.pitch or 1.0,
+                energy=request.energy or 0.5,
+                emotion=request.emotion,
+                style=request.style,
+            )
 
         return Response(
             content=wav_bytes,
