@@ -128,5 +128,44 @@
     "tempo_factor": 1.0,
     "sample_path": "storage/cloned_voices/cloned_09d8770c.wav",
     "language": "multilingual"
+  },
+  "cloned_26dac44f": {
+    "voice_id": "cloned_26dac44f",
+    "name": "My Cloned Voice",
+    "gender": "Male",
+    "f0_mean": 133.3,
+    "pitch_factor": 1.067,
+    "warmth_gain": 4.4,
+    "brightness_gain": 1.0,
+    "clarity_freq": 2800,
+    "tempo_factor": 1.0,
+    "sample_path": "storage/cloned_voices/cloned_26dac44f.wav",
+    "language": "multilingual"
+  },
+  "cloned_30fb072f": {
+    "voice_id": "cloned_30fb072f",
+    "name": "My Cloned Voice",
+    "gender": "Male",
+    "f0_mean": 139.1,
+    "pitch_factor": 1.113,
+    "warmth_gain": 4.4,
+    "brightness_gain": 1.0,
+    "clarity_freq": 2800,
+    "tempo_factor": 1.0,
+    "sample_path": "storage/cloned_voices/cloned_30fb072f.wav",
+    "language": "multilingual"
+  },
+  "cloned_5d70ff64": {
+    "voice_id": "cloned_5d70ff64",
+    "name": "My Cloned Voice",
+    "gender": "Male",
+    "f0_mean": 139.1,
+    "pitch_factor": 1.113,
+    "warmth_gain": 4.4,
+    "brightness_gain": 1.0,
+    "clarity_freq": 2800,
+    "tempo_factor": 1.0,
+    "sample_path": "storage/cloned_voices/cloned_5d70ff64.wav",
+    "language": "multilingual"
   }
 }
