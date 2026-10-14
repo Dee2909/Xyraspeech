@@ -1,11 +1,15 @@
-"""Voice Library API Endpoints."""
+"""Voice Library API Endpoints with Bark Voice Cloning Support."""
 
+import os
+import re
 from typing import Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from xyraspeech.app.engines.tts.registry import voice_registry
 from xyraspeech.app.engines.tts.voice_cloner import voice_cloner_engine
-from xyraspeech.app.schemas.voices import VoiceItem, VoiceListResponse
+from xyraspeech.app.models.enums import TTSCapability
+from xyraspeech.app.schemas.voices import VoiceItem, VoiceListResponse, VoiceCloneResponse
+from xyraspeech.app.services.voice_cloner import voice_cloner_service
 
 router = APIRouter(prefix="/api/v1", tags=["Voice Library"])
 
@@ -29,37 +33,76 @@ async def get_voice(voice_id: str) -> VoiceItem:
     return voice
 
 
-@router.post("/voices/clone", response_model=VoiceItem)
+@router.post("/voices/clone", response_model=VoiceCloneResponse)
 async def clone_voice(
     file: UploadFile = File(...),
-    name: str = Form(...),
+    voice_name: str = Form(...),
     language: str = Form(default="ta"),
-    gender: Optional[str] = Form(default="Auto"),
+    gender: str = Form(default="Neutral"),
     description: Optional[str] = Form(default=None),
-) -> VoiceItem:
-    """Clones a custom voice from a short reference audio clip."""
-    if not name or not name.strip():
+) -> VoiceCloneResponse:
+    """
+    Clones a voice from an uploaded reference audio clip (5-15s WAV/MP3).
+    Extracts Bark discrete acoustic and semantic prompt tensors and registers cloned voice.
+    """
+    if not file or not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "INVALID_NAME", "message": "Speaker name cannot be empty."},
+            detail={"code": "MISSING_FILE", "message": "An audio sample file must be uploaded."},
         )
 
     audio_bytes = await file.read()
-    if not audio_bytes or len(audio_bytes) < 500:
+    if len(audio_bytes) < 100:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "INVALID_AUDIO", "message": "Uploaded audio sample is empty or too short."},
+            detail={"code": "EMPTY_AUDIO", "message": "Uploaded audio file is empty or corrupted."},
         )
 
+    # Sanitize voice ID
+    slug_name = re.sub(r"[^a-zA-Z0-9_]", "_", voice_name.lower().strip())
+    voice_id = f"cloned_{slug_name}"
+
     try:
-        voice_item, _ = await voice_cloner_engine.create_cloned_voice(
-            name=name.strip(),
+        # Extract Bark 3-part prompt numpy dictionary
+        prompt_dict = voice_cloner_service.extract_voice_prompt(
             audio_bytes=audio_bytes,
+            voice_id=voice_id,
+            sample_rate=24000,
+        )
+
+        # Save .npz preset in storage/voices/
+        npz_path = voice_cloner_service.save_voice_preset(voice_id, prompt_dict)
+
+        # Create VoiceItem and register dynamically
+        voice_item = VoiceItem(
+            id=voice_id,
+            name=voice_name.strip(),
             language=language,
             gender=gender,
-            description=description,
+            engine="bark_cloned",
+            sample_rate=24000,
+            capabilities=[
+                TTSCapability.SUPPORTS_SPEED.value,
+                TTSCapability.SUPPORTS_EMOTION.value,
+                TTSCapability.SUPPORTS_PAUSE.value,
+                TTSCapability.SUPPORTS_STYLE.value,
+            ],
+            is_default=False,
+            description=description or f"Custom cloned Bark voice profile from sample '{file.filename}'.",
         )
-        return voice_item
+
+        storage_dir = os.path.join(os.getcwd(), "storage", "voices")
+        os.makedirs(storage_dir, exist_ok=True)
+        metadata_json_path = os.path.join(storage_dir, f"{voice_id}.json")
+
+        voice_registry.register_custom_voice(voice_item, metadata_json_path=metadata_json_path)
+
+        return VoiceCloneResponse(
+            status="SUCCESS",
+            voice=voice_item,
+            npz_path=npz_path,
+            message=f"Voice '{voice_name}' successfully cloned and registered into Voice Library.",
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -70,7 +113,7 @@ async def clone_voice(
 @router.delete("/voices/{voice_id}")
 async def delete_voice(voice_id: str):
     """Deletes a custom cloned voice."""
-    if not voice_id.startswith("clone_"):
+    if not voice_id.startswith("clone_") and not voice_id.startswith("cloned_"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "CANNOT_DELETE_BUILTIN", "message": "Built-in voices cannot be deleted."},
@@ -84,4 +127,3 @@ async def delete_voice(voice_id: str):
         )
 
     return {"status": "success", "message": f"Cloned voice '{voice_id}' deleted successfully."}
-

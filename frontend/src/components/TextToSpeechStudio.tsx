@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Play, Download, RefreshCw, Volume2, Sliders } from "lucide-react";
+import { Play, Download, RefreshCw, Volume2, Sliders, Smile } from "lucide-react";
 import { api } from "../services/api";
 import { VoiceItem } from "../types";
 
@@ -8,14 +8,18 @@ interface Props {
 }
 
 export const TextToSpeechStudio: React.FC<Props> = ({ voices }) => {
-  const [text, setText] = useState<string>("வணக்கம்! XyraSpeech தயாரிப்பு மேடைக்கு தங்களை அன்புடன் வரவேற்கிறோம்!");
+  const [text, setText] = useState<string>("வணக்கம்! [laughter] XyraSpeech தயாரிப்பு மேடைக்கு தங்களை அன்புடன் வரவேற்கிறோம்!");
   const [language, setLanguage] = useState<string>("ta");
-  const [selectedVoice, setSelectedVoice] = useState<string>("ta_vani");
+  const [selectedVoice, setSelectedVoice] = useState<string>("ta_pallavi");
   const [speed, setSpeed] = useState<number>(1.0);
   const [pitch, setPitch] = useState<number>(1.0);
   const [energy, setEnergy] = useState<number>(0.6);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  const insertTag = (tag: string) => {
+    setText((prev) => `${prev.trim()} ${tag} `);
+  };
 
   const handleSynthesize = async () => {
     if (!text.trim()) return;
@@ -43,17 +47,17 @@ export const TextToSpeechStudio: React.FC<Props> = ({ voices }) => {
 
   const setSample = (type: "tamil" | "english" | "mixed") => {
     if (type === "tamil") {
-      setText("வணக்கம்! இன்று வானிலை மிகவும் இனிமையாக உள்ளது.");
+      setText("வணக்கம்! [laughter] இன்று வானிலை மிகவும் இனிமையாக உள்ளது.");
       setLanguage("ta");
-      setSelectedVoice("ta_vani");
+      setSelectedVoice("ta_pallavi");
     } else if (type === "english") {
-      setText("Hello! Welcome to XyraSpeech studio, a local-first speech synthesis platform.");
+      setText("Hello! [laughter] Welcome to XyraSpeech studio. [sighs] It is nice to meet you.");
       setLanguage("en");
-      setSelectedVoice("en_rishi");
+      setSelectedVoice("en_neerja");
     } else {
-      setText("Hello friends! இன்று meeting ரொம்ப important, please attend பண்ணுங்க.");
+      setText("Hello friends! [laughter] இன்று meeting ரொம்ப important, please attend பண்ணுங்க.");
       setLanguage("ta-en");
-      setSelectedVoice("ta_vani");
+      setSelectedVoice("ta_pallavi");
     }
   };
 
@@ -68,6 +72,31 @@ export const TextToSpeechStudio: React.FC<Props> = ({ voices }) => {
             <button onClick={() => setSample("english")} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "white", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}>English Sample</button>
             <button onClick={() => setSample("mixed")} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "white", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}>Mixed Sample</button>
           </div>
+        </div>
+
+        {/* Bark Expressive Tag Insert Bar */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", background: "rgba(255,255,255,0.03)", padding: "10px", borderRadius: "8px" }}>
+          <span style={{ fontSize: "12px", color: "var(--accent-purple)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+            <Smile size={14} /> Bark Emotion Cues:
+          </span>
+          {["[laughter]", "[sighs]", "[gasp]", "[clears throat]", "[music]", "[chuckle]", "..."].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => insertTag(tag)}
+              style={{
+                fontSize: "11px",
+                background: "rgba(168,85,247,0.15)",
+                border: "1px solid rgba(168,85,247,0.3)",
+                color: "#e9d5ff",
+                padding: "3px 8px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              + {tag}
+            </button>
+          ))}
         </div>
 
         <textarea
@@ -153,7 +182,7 @@ export const TextToSpeechStudio: React.FC<Props> = ({ voices }) => {
         </div>
 
         <div>
-          <label style={{ fontSize: "13px", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Voice Actor</label>
+          <label style={{ fontSize: "13px", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Voice Actor / Cloned Profile</label>
           <select
             value={selectedVoice}
             onChange={(e) => setSelectedVoice(e.target.value)}
@@ -161,7 +190,7 @@ export const TextToSpeechStudio: React.FC<Props> = ({ voices }) => {
           >
             {voices.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.name} ({v.gender})
+                {v.name} ({v.gender} • {v.engine})
               </option>
             ))}
           </select>

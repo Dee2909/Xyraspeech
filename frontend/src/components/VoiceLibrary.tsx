@@ -10,12 +10,13 @@ interface Props {
 
 export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
   const [showCloneModal, setShowCloneModal] = useState(false);
-  const [cloneName, setCloneName] = useState("");
-  const [cloneLang, setCloneLang] = useState("ta");
-  const [cloneGender, setCloneGender] = useState("Auto");
-  const [cloneDesc, setCloneDesc] = useState("");
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [isCloning, setIsCloning] = useState(false);
+  const [voiceName, setVoiceName] = useState("");
+  const [language, setLanguage] = useState("ta");
+  const [gender, setGender] = useState("Neutral");
+  const [description, setDescription] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [cloning, setCloning] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [localVoices, setLocalVoices] = useState<VoiceItem[]>(voices);
 
   React.useEffect(() => {
@@ -44,35 +45,33 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
 
   const handleCloneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cloneName.trim()) {
-      alert("Please enter a speaker name.");
+    if (!voiceName.trim()) {
+      alert("Please enter a voice profile name.");
       return;
     }
-    if (!audioFile) {
+    if (!selectedFile) {
       alert("Please upload an audio sample file (WAV/MP3).");
       return;
     }
 
+    setCloning(true);
+    setStatusMsg("Extracting Bark semantic & acoustic prompt tensors...");
+
     try {
-      setIsCloning(true);
-      const newVoice = await api.cloneVoice({
-        file: audioFile,
-        name: cloneName.trim(),
-        language: cloneLang,
-        gender: cloneGender,
-        description: cloneDesc.trim() || undefined,
-      });
-      alert(`Voice '${cloneName}' cloned successfully!`);
-      setLocalVoices((prev) => [...prev.filter((v) => v.id !== newVoice.id), newVoice]);
+      const resp = await api.cloneVoice(selectedFile, voiceName.trim(), language, description);
+      setStatusMsg(`Success! ${resp.message}`);
+      if (resp.voice) {
+        setLocalVoices((prev) => [...prev.filter((v) => v.id !== resp.voice.id), resp.voice]);
+      }
+      setVoiceName("");
+      setDescription("");
+      setSelectedFile(null);
       setShowCloneModal(false);
-      setCloneName("");
-      setCloneDesc("");
-      setAudioFile(null);
       if (onVoicesUpdated) onVoicesUpdated();
     } catch (err: any) {
-      alert(`Voice Cloning failed: ${err.message}`);
+      setStatusMsg(`Cloning error: ${err.message}`);
     } finally {
-      setIsCloning(false);
+      setCloning(false);
     }
   };
 
@@ -106,13 +105,13 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
       >
         <div style={{ maxWidth: "600px", zIndex: 2 }}>
           <span style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", color: "var(--accent-cyan)", fontWeight: 800 }}>
-            ⚡ Zero-Shot Acoustic Feature Extraction
+            ⚡ Zero-Shot Bark Acoustic Feature Extraction
           </span>
           <h2 style={{ fontSize: "28px", fontWeight: 900, marginTop: "6px", fontFamily: "var(--font-heading)" }}>
             Neural <span className="gradient-text">Voice Cloning</span> Studio
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "8px", lineHeight: "1.5" }}>
-            Upload a short 5-second audio sample to extract pitch frequency (\(F_0\)), timbre dynamics, and formant response for instant speech synthesis.
+            Upload a short 5–15 second audio sample to extract Bark discrete acoustic & semantic prompt tensors for instant speech synthesis.
           </p>
         </div>
       </div>
@@ -121,7 +120,7 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
         <div>
           <h3 style={{ fontSize: "18px", fontWeight: 700 }}>Voice Actor Library</h3>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "4px" }}>
-            Installed genuine local neural voices and custom cloned speakers.
+            Installed genuine local neural voices and custom cloned Bark speakers.
           </p>
         </div>
         <button
@@ -150,17 +149,17 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
           }}
         >
           <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Mic size={18} color="var(--accent-purple)" /> Voice Cloning Studio
+            <Mic size={18} color="var(--accent-purple)" /> Bark Voice Cloning Studio
           </h3>
           <form onSubmit={handleCloneSubmit} style={{ display: "grid", gap: "14px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
               <div>
-                <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Speaker Name</label>
+                <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Voice Profile Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Karthik / Priya / My Voice"
-                  value={cloneName}
-                  onChange={(e) => setCloneName(e.target.value)}
+                  value={voiceName}
+                  onChange={(e) => setVoiceName(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -176,8 +175,8 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Language</label>
                 <select
-                  value={cloneLang}
-                  onChange={(e) => setCloneLang(e.target.value)}
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -188,15 +187,15 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
                     marginTop: "4px",
                   }}
                 >
-                  <option value="ta">Tamil (ta)</option>
-                  <option value="en">English (en)</option>
+                  <option value="ta">🇮🇳 Tamil (தமிழ்)</option>
+                  <option value="en">🇬🇧 English</option>
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Voice Gender</label>
                 <select
-                  value={cloneGender}
-                  onChange={(e) => setCloneGender(e.target.value)}
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -207,7 +206,7 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
                     marginTop: "4px",
                   }}
                 >
-                  <option value="Auto">✨ Auto Detect Pitch</option>
+                  <option value="Neutral">✨ Neutral / Auto Detect</option>
                   <option value="Female">👩 Female Voice</option>
                   <option value="Male">👨 Male Voice</option>
                 </select>
@@ -215,28 +214,52 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
             </div>
 
             <div>
-              <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Reference Audio Sample File (WAV/MP3)</label>
+              <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Reference Audio Sample (.wav / .mp3)</label>
               <input
                 type="file"
                 accept="audio/*"
-                onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 style={{
                   width: "100%",
                   padding: "8px",
+                  background: "rgba(0,0,0,0.2)",
+                  border: "1px dashed var(--accent-purple)",
+                  borderRadius: "8px",
+                  color: "white",
+                  marginTop: "4px",
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }}>Description (optional)</label>
+              <input
+                type="text"
+                placeholder="Short description of this voice profile"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
                   background: "rgba(0,0,0,0.3)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "8px",
                   color: "white",
                   marginTop: "4px",
                 }}
-                required
               />
             </div>
+
+            {statusMsg && (
+              <div style={{ fontSize: "13px", color: statusMsg.startsWith("Success") ? "var(--accent-emerald)" : "var(--accent-cyan)" }}>
+                {statusMsg}
+              </div>
+            )}
 
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               <button
                 type="button"
-                onClick={() => setShowCloneModal(false)}
+                onClick={() => { setShowCloneModal(false); setStatusMsg(null); }}
                 style={{
                   padding: "8px 16px",
                   background: "rgba(255,255,255,0.1)",
@@ -250,18 +273,21 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
               </button>
               <button
                 type="submit"
-                disabled={isCloning}
+                disabled={cloning}
                 style={{
                   padding: "8px 20px",
-                  background: "var(--accent-purple)",
+                  background: "linear-gradient(90deg, #a855f7 0%, #3b82f6 100%)",
                   border: "none",
                   borderRadius: "8px",
                   color: "white",
                   fontWeight: 600,
-                  cursor: "pointer",
+                  cursor: cloning ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
                 }}
               >
-                {isCloning ? "Cloning Voice..." : "Clone Voice"}
+                <Mic size={14} /> {cloning ? "Extracting Prompt Arrays..." : "Clone Voice with Bark"}
               </button>
             </div>
           </form>
@@ -274,8 +300,8 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
             key={v.id}
             style={{
               padding: "20px",
-              background: v.engine === "voice_cloner" ? "rgba(99, 102, 241, 0.08)" : "rgba(255,255,255,0.04)",
-              border: v.engine === "voice_cloner" ? "1px solid rgba(99, 102, 241, 0.4)" : "1px solid var(--border-color)",
+              background: v.engine === "bark_cloned" ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.04)",
+              border: v.engine === "bark_cloned" ? "1px solid rgba(168,85,247,0.4)" : "1px solid var(--border-color)",
               borderRadius: "14px",
               display: "flex",
               flexDirection: "column",
@@ -289,18 +315,23 @@ export const VoiceLibrary: React.FC<Props> = ({ voices, onVoicesUpdated }) => {
                   {v.language === "ta" ? "🇮🇳 Tamil" : "🇬🇧 English"} • {v.gender}
                 </span>
               </div>
-              {v.is_default ? (
+              {v.engine === "bark_cloned" ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "11px", background: "rgba(168,85,247,0.3)", color: "#d8b4fe", padding: "3px 8px", borderRadius: "10px", fontWeight: 600 }}>
+                    Bark Cloned
+                  </span>
+                  <button
+                    onClick={() => handleDeleteVoice(v.id, v.name)}
+                    style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer" }}
+                    title="Delete Cloned Voice"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ) : v.is_default ? (
                 <span style={{ fontSize: "11px", background: "rgba(16,185,129,0.2)", color: "var(--accent-emerald)", padding: "3px 8px", borderRadius: "10px", fontWeight: 600 }}>
                   Default
                 </span>
-              ) : v.engine === "voice_cloner" ? (
-                <button
-                  onClick={() => handleDeleteVoice(v.id, v.name)}
-                  style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer" }}
-                  title="Delete Cloned Voice"
-                >
-                  <Trash2 size={16} />
-                </button>
               ) : null}
             </div>
 

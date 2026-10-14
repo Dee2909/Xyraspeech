@@ -1,5 +1,7 @@
-"""Voice Registry: Discoverable real voices for Tamil and English."""
+"""Voice Registry: Discoverable real voices for Tamil and English including Bark Voice Clones."""
 
+import os
+import json
 from typing import Dict, List, Optional
 from xyraspeech.app.core.config import settings
 from xyraspeech.app.models.enums import TTSCapability
@@ -7,7 +9,7 @@ from xyraspeech.app.schemas.voices import VoiceItem
 
 
 class VoiceRegistry:
-    """Registry of genuine available voices: 1 Tamil voice and 1 English voice."""
+    """Registry of genuine available voices & custom cloned Bark voice profiles."""
 
     def __init__(self):
         self._voices: Dict[str, VoiceItem] = {
@@ -47,7 +49,62 @@ class VoiceRegistry:
                 is_default=True,
                 description="Warm, melodic English expressive neural voice.",
             ),
+            "bark_expressive_ta": VoiceItem(
+                id="bark_expressive_ta",
+                name="Bark Tamil Expressive",
+                language="ta",
+                gender="Neutral",
+                engine="bark_cloned",
+                sample_rate=24000,
+                capabilities=[
+                    TTSCapability.SUPPORTS_EMOTION.value,
+                    TTSCapability.SUPPORTS_PAUSE.value,
+                    TTSCapability.SUPPORTS_STYLE.value,
+                ],
+                is_default=False,
+                description="Bark neural voice synthesizer for Tamil with acoustic emotion & laughter cues.",
+            ),
+            "bark_expressive_en": VoiceItem(
+                id="bark_expressive_en",
+                name="Bark English Expressive",
+                language="en",
+                gender="Neutral",
+                engine="bark_cloned",
+                sample_rate=24000,
+                capabilities=[
+                    TTSCapability.SUPPORTS_EMOTION.value,
+                    TTSCapability.SUPPORTS_PAUSE.value,
+                    TTSCapability.SUPPORTS_STYLE.value,
+                ],
+                is_default=False,
+                description="Bark neural voice synthesizer for English with dynamic non-speech sound effects.",
+            ),
         }
+        self.reload_cloned_voices()
+
+    def reload_cloned_voices(self):
+        """Discovers custom cloned voice files in storage/voices/ metadata JSON files."""
+        storage_dir = os.path.join(os.getcwd(), "storage", "voices")
+        if not os.path.exists(storage_dir):
+            return
+
+        for filename in os.listdir(storage_dir):
+            if filename.endswith(".json"):
+                json_path = os.path.join(storage_dir, filename)
+                try:
+                    with open(json_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        voice_item = VoiceItem(**data)
+                        self._voices[voice_item.id] = voice_item
+                except Exception:
+                    pass
+
+    def register_custom_voice(self, voice_item: VoiceItem, metadata_json_path: Optional[str] = None):
+        """Registers a newly cloned Bark voice into registry and persists metadata."""
+        self._voices[voice_item.id] = voice_item
+        if metadata_json_path:
+            with open(metadata_json_path, "w", encoding="utf-8") as f:
+                json.dump(voice_item.model_dump(), f, indent=2)
 
     def list_voices(self, language: Optional[str] = None) -> List[VoiceItem]:
         """Lists all registered static and cloned voices."""
@@ -75,5 +132,3 @@ class VoiceRegistry:
 
 
 voice_registry = VoiceRegistry()
-
-

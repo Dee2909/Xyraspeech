@@ -1,6 +1,6 @@
-"""Real Text-to-Speech (TTS) API Endpoint."""
+"""Real Text-to-Speech (TTS) API Endpoint supporting Neural & Bark Voice Cloned Engines."""
 
-from typing import Optional
+from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import HTMLResponse
 
@@ -8,11 +8,27 @@ from xyrabrain.app.services.language_service import language_service
 from xyraspeech.app.core.config import settings
 from xyraspeech.app.core.security import verify_api_key
 from xyraspeech.app.engines.tts.mac_tts import mac_tts_engine
+from xyraspeech.app.engines.tts.bark_tts import bark_tts_engine
 from xyraspeech.app.engines.tts.registry import voice_registry
 from xyraspeech.app.engines.tts.voice_cloner import voice_cloner_engine
 from xyraspeech.app.schemas.tts import TTSRequest
 
 router = APIRouter(prefix="/api/v1", tags=["Text-to-Speech"])
+
+
+def _select_engine(voice_item) -> Any:
+    """Select the appropriate TTS engine based on voice profile type."""
+    if voice_item and (
+        voice_item.engine == "bark_cloned"
+        or voice_item.id.startswith("bark_")
+        or voice_item.id.startswith("cloned_")
+    ):
+        return bark_tts_engine
+    if voice_item and (
+        voice_item.id.startswith("clone_") or voice_item.engine == "voice_cloner"
+    ):
+        return voice_cloner_engine
+    return mac_tts_engine
 
 
 @router.get("/tts")
@@ -48,28 +64,17 @@ async def get_synthesize_speech(
         voice = voice_registry.get_default_voice(lang_code)
 
     try:
-        if voice.id.startswith("clone_") or voice.engine == "voice_cloner":
-            wav_bytes = await voice_cloner_engine.synthesize(
-                text=text,
-                language=lang_code,
-                voice_id=voice.id,
-                speed=speed,
-                pitch=pitch,
-                energy=energy,
-                emotion=emotion,
-                style=style,
-            )
-        else:
-            wav_bytes = await mac_tts_engine.synthesize(
-                text=text,
-                language=lang_code,
-                voice_id=voice.id,
-                speed=speed,
-                pitch=pitch,
-                energy=energy,
-                emotion=emotion,
-                style=style,
-            )
+        engine = _select_engine(voice)
+        wav_bytes = await engine.synthesize(
+            text=text,
+            language=lang_code,
+            voice_id=voice.id,
+            speed=speed,
+            pitch=pitch,
+            energy=energy,
+            emotion=emotion,
+            style=style,
+        )
 
         return Response(
             content=wav_bytes,
@@ -116,28 +121,17 @@ async def synthesize_speech(
         voice = voice_registry.get_default_voice(lang_code)
 
     try:
-        if voice.id.startswith("clone_") or voice.engine == "voice_cloner":
-            wav_bytes = await voice_cloner_engine.synthesize(
-                text=request.text,
-                language=lang_code,
-                voice_id=voice.id,
-                speed=request.speed or 1.0,
-                pitch=request.pitch or 1.0,
-                energy=request.energy or 0.5,
-                emotion=request.emotion,
-                style=request.style,
-            )
-        else:
-            wav_bytes = await mac_tts_engine.synthesize(
-                text=request.text,
-                language=lang_code,
-                voice_id=voice.id,
-                speed=request.speed or 1.0,
-                pitch=request.pitch or 1.0,
-                energy=request.energy or 0.5,
-                emotion=request.emotion,
-                style=request.style,
-            )
+        engine = _select_engine(voice)
+        wav_bytes = await engine.synthesize(
+            text=request.text,
+            language=lang_code,
+            voice_id=voice.id,
+            speed=request.speed or 1.0,
+            pitch=request.pitch or 1.0,
+            energy=request.energy or 0.5,
+            emotion=request.emotion,
+            style=request.style,
+        )
 
         return Response(
             content=wav_bytes,
@@ -154,4 +148,3 @@ async def synthesize_speech(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"code": "TTS_SYNTHESIS_ERROR", "message": str(exc)},
         )
-

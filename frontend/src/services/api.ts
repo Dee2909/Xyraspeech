@@ -8,21 +8,49 @@ import {
 
 const BASE_URL = "";
 
+async function safeJsonParse(res: Response): Promise<any> {
+  try {
+    const text = await res.text();
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+}
+
 export const api = {
   async getHealth(): Promise<{ status: string }> {
-    const res = await fetch(`${BASE_URL}/health`);
-    return res.json();
+    try {
+      const res = await fetch(`${BASE_URL}/health`);
+      if (!res.ok) return { status: "offline" };
+      return await safeJsonParse(res);
+    } catch {
+      return { status: "offline" };
+    }
   },
 
   async getModelsHealth(): Promise<ModelHealthStatus> {
-    const res = await fetch(`${BASE_URL}/health/models`);
-    return res.json();
+    try {
+      const res = await fetch(`${BASE_URL}/health/models`);
+      if (!res.ok) return {} as ModelHealthStatus;
+      return await safeJsonParse(res);
+    } catch {
+      return {} as ModelHealthStatus;
+    }
   },
 
   async getVoices(): Promise<VoiceItem[]> {
-    const res = await fetch(`${BASE_URL}/api/v1/voices`);
-    const data = await res.json();
-    return data.voices || [];
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/voices`);
+      if (!res.ok) {
+        console.warn("Voices endpoint returned status:", res.status);
+        return [];
+      }
+      const data = await safeJsonParse(res);
+      return data.voices || [];
+    } catch (err) {
+      console.error("Failed fetching voices:", err);
+      return [];
+    }
   },
 
   async synthesizeSpeech(params: {
@@ -40,8 +68,8 @@ export const api = {
       body: JSON.stringify(params),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || "Synthesis failed");
+      const err = await safeJsonParse(res);
+      throw new Error(err.detail?.message || err.error?.message || `Synthesis failed (HTTP ${res.status})`);
     }
     return res.blob();
   },
@@ -57,10 +85,10 @@ export const api = {
       body: formData,
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || "Transcription failed");
+      const err = await safeJsonParse(res);
+      throw new Error(err.detail?.message || err.error?.message || `Transcription failed (HTTP ${res.status})`);
     }
-    return res.json();
+    return safeJsonParse(res);
   },
 
   async translateText(params: {
@@ -74,10 +102,10 @@ export const api = {
       body: JSON.stringify(params),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || "Translation failed");
+      const err = await safeJsonParse(res);
+      throw new Error(err.detail?.message || err.error?.message || `Translation failed (HTTP ${res.status})`);
     }
-    return res.json();
+    return safeJsonParse(res);
   },
 
   async sendConversationMessage(params: {
@@ -92,10 +120,28 @@ export const api = {
       body: JSON.stringify(params),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || "Conversation processing failed");
+      const err = await safeJsonParse(res);
+      throw new Error(err.detail?.message || err.error?.message || `Conversation failed (HTTP ${res.status})`);
     }
-    return res.json();
+    return safeJsonParse(res);
+  },
+
+  async cloneVoice(audioFile: File, voiceName: string, language: string = "ta", description?: string): Promise<{ status: string; voice: VoiceItem; message: string }> {
+    const formData = new FormData();
+    formData.append("file", audioFile);
+    formData.append("voice_name", voiceName);
+    formData.append("language", language);
+    if (description) formData.append("description", description);
+
+    const res = await fetch(`${BASE_URL}/api/v1/voices/clone`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await safeJsonParse(res);
+      throw new Error(err.detail?.message || err.message || `Voice cloning failed (HTTP ${res.status})`);
+    }
+    return safeJsonParse(res);
   },
 
   async cloneVoice(params: {

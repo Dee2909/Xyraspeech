@@ -2,6 +2,7 @@
 
 import io
 import math
+import shutil
 import subprocess
 import wave
 from typing import AsyncGenerator, Optional, Tuple
@@ -89,7 +90,20 @@ class AudioProcessor:
 
     @classmethod
     def _convert_via_ffmpeg(cls, input_bytes: bytes, target_sample_rate: int = 16000) -> Tuple[bytes, np.ndarray, float]:
-        """Invokes ffmpeg subprocess to normalize audio into clean 16kHz mono WAV."""
+        """Invokes ffmpeg subprocess or soundfile fallback to normalize audio into clean 16kHz mono WAV."""
+        if not shutil.which("ffmpeg"):
+            try:
+                with io.BytesIO(input_bytes) as bio:
+                    data, sr = sf.read(bio, dtype="float32")
+                if data.ndim > 1:
+                    data = np.mean(data, axis=1)
+                duration_sec = len(data) / float(sr)
+                out_bio = io.BytesIO()
+                sf.write(out_bio, data, target_sample_rate, format="WAV", subtype="PCM_16")
+                return out_bio.getvalue(), data, duration_sec
+            except Exception as e:
+                raise AudioProcessingError(f"FFmpeg not installed and soundfile fallback failed: {str(e)}")
+
         try:
             cmd = [
                 "ffmpeg",

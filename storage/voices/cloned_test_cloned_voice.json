@@ -1,0 +1,16 @@
+{
+  "id": "cloned_test_cloned_voice",
+  "name": "Test Cloned Voice",
+  "language": "en",
+  "gender": "Female",
+  "engine": "bark_cloned",
+  "sample_rate": 24000,
+  "capabilities": [
+    "supports_speed",
+    "supports_emotion",
+    "supports_pause",
+    "supports_style"
+  ],
+  "is_default": false,
+  "description": "Cloned voice test profile"
+}
